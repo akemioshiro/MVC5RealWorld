@@ -137,13 +137,16 @@ namespace MVC5RealWorld.Models.EntityManager
                     UPV.Password = u.PasswordEncryptedText;
 
                     var SUP = db.SYSUserProfiles.Find(u.SYSUserID);
-                    if (SUP != null) {
+                    if (SUP != null)
+                    {
                         UPV.FirstName = SUP.FirstName;
                         UPV.LastName = SUP.LastName;
-                        UPV.Gender = SUP.Gender; }
+                        UPV.Gender = SUP.Gender;
+                    }
 
                     var SUR = db.SYSUserRoles.Where(o => o.SYSUserID.Equals(u.SYSUserID));
-                    if (SUR.Any()) {
+                    if (SUR.Any())
+                    {
                         var userRole = SUR.FirstOrDefault();
                         UPV.LOOKUPRoleID = userRole.LOOKUPRoleID;
                         UPV.RoleName = userRole.LOOKUPRole.RoleName;
@@ -178,6 +181,74 @@ namespace MVC5RealWorld.Models.EntityManager
             UDV.UserRoles = new UserRoles { SelectedRoleID = userAssignedRoleID, UserRoleList = roles };
             UDV.UserGender = new UserGender { SelectedGender = userGender, Gender = genders };
             return UDV;
+        }
+
+        public void UpdateUserAccount(UserProfileView user)
+        {
+
+            using (DemoDBEntities db = new DemoDBEntities())
+            {
+                using (var dbContextTransaction = db.Database.BeginTransaction())
+                {
+                    try
+                    {
+
+                        SYSUser SU = db.SYSUsers.Find(user.SYSUserID);
+                        SU.LoginName = user.LoginName;
+                        SU.PasswordEncryptedText = user.Password;
+                        SU.RowCreatedSYSUserID = user.SYSUserID;
+                        SU.RowModifiedSYSUserID = user.SYSUserID;
+                        SU.RowCreatedDateTime = DateTime.Now; 
+
+                        db.SaveChanges();
+
+                        var userProfile = db.SYSUserProfiles.Where(o => o.SYSUserID == user.SYSUserID);
+                        if (userProfile.Any())
+                        {
+                            SYSUserProfile SUP = userProfile.FirstOrDefault();
+                            SUP.SYSUserID = SU.SYSUserID;
+                            SUP.FirstName = user.FirstName;
+                            SUP.LastName = user.LastName;
+                            SUP.Gender = user.Gender;
+                            SUP.RowCreatedSYSUserID = user.SYSUserID;
+                            SUP.RowModifiedSYSUserID = user.SYSUserID;
+                            SUP.RowCreatedDateTime = DateTime.Now;
+                            SUP.RowModifiedDateTime = DateTime.Now;
+
+                            db.SaveChanges();
+                        }
+
+                        if (user.LOOKUPRoleID > 0)
+                        {
+                            var userRole = db.SYSUserRoles.Where(o => o.SYSUserID == user.SYSUserID); SYSUserRole SUR = null; if (userRole.Any())
+                            {
+                                SUR = userRole.FirstOrDefault();
+                                SUR.LOOKUPRoleID = user.LOOKUPRoleID;
+                                SUR.SYSUserID = user.SYSUserID;
+                                SUR.IsActive = true;
+                                SUR.RowCreatedSYSUserID = user.SYSUserID;
+                                SUR.RowModifiedSYSUserID = user.SYSUserID;
+                                SUR.RowCreatedDateTime = DateTime.Now;
+                                SUR.RowModifiedDateTime = DateTime.Now;
+                            }
+                            else { SUR = new SYSUserRole();
+                                SUR.LOOKUPRoleID = user.LOOKUPRoleID;
+                                SUR.SYSUserID = user.SYSUserID;
+                                SUR.IsActive = true;
+                                SUR.RowCreatedSYSUserID = user.SYSUserID;
+                                SUR.RowModifiedSYSUserID = user.SYSUserID;
+                                SUR.RowCreatedDateTime = DateTime.Now;
+                                SUR.RowModifiedDateTime = DateTime.Now;
+                                db.SYSUserRoles.Add(SUR);
+                            }
+
+                            db.SaveChanges();
+                        }
+                        dbContextTransaction.Commit();
+                    }
+                    catch { dbContextTransaction.Rollback(); }
+                }
+            }
         }
 
     }

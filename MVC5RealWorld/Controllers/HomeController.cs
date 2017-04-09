@@ -24,7 +24,7 @@ namespace MVC5RealWorld.Controllers
         }
 
         //[AuthorizeRoles("Admin")]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         public ActionResult AdminOnly()
         {
             return View();
@@ -35,17 +35,47 @@ namespace MVC5RealWorld.Controllers
             return View();
         }
 
-        [Authorize(Roles="Admin")]
-        public ActionResult ManageUserPartial()
+        //[Authorize(Roles="Admin")]
+        public ActionResult ManageUserPartial(string status ="")
         {
             if (User.Identity.IsAuthenticated)
             {
                 string loginName = User.Identity.Name;
                 UserManager UM = new UserManager();
                 UserDataView UDV = UM.GetUserDataView(loginName);
+
+                string message = string.Empty;
+                if (status.Equals("update"))
+                    message = "Update Successful";
+                else if (status.Equals("delete"))
+                    message = "Delete Successful";
+
+                ViewBag.Message = message;
+
                 return PartialView(UDV);
             }
-            return View();
+            return RedirectToAction("Index", "Home");
+        }
+
+        //[Authorize(Roles = "Admin")]
+        public ActionResult UpdateUserData(int userId, string loginName, string password, string firstName, string lastName, string gender, int roleId = 0)
+        {
+            UserProfileView UPV = new UserProfileView();
+            UPV.SYSUserID = userId;
+            UPV.LoginName = loginName;
+            UPV.Password = password;
+            UPV.FirstName = firstName;
+            UPV.LastName = lastName;
+            UPV.Gender = gender;
+
+            if (roleId > 0)
+                UPV.LOOKUPRoleID = roleId;
+
+            UserManager UM = new UserManager();
+            UM.UpdateUserAccount(UPV);
+
+            return Json(new { success = true  });
+
         }
 
     }
