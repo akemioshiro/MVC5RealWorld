@@ -19,5 +19,17 @@ namespace MVC5RealWorld.Controllers
         {
             return View();
         }
+
+        //[AuthorizeRoles("Admin")]
+        [Authorize(Roles = "Admin")]
+        public ActionResult AdminOnly()
+        {
+            return View();
+        }
+
+        public ActionResult UnAuthorized()
+        {
+            return View();
+        }
     }
 }
