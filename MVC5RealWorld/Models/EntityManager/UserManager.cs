@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace MVC5RealWorld.Models.EntityManager
 {
@@ -57,7 +58,8 @@ namespace MVC5RealWorld.Models.EntityManager
 
         public bool IsLoginNameExist(string loginName)
         {
-            using (DemoDBEntities db = new DemoDBEntities()) {
+            using (DemoDBEntities db = new DemoDBEntities())
+            {
                 return db.SYSUsers.Where(o => o.LoginName.Equals(loginName)).Any();
             }
         }
@@ -79,7 +81,7 @@ namespace MVC5RealWorld.Models.EntityManager
             using (DemoDBEntities db = new DemoDBEntities())
             {
                 SYSUser SU = db.SYSUsers.Where(o => o.LoginName.ToLower().Equals(loginName))?.FirstOrDefault();
-                if(SU!=null)
+                if (SU != null)
                 {
                     var roles = from q in db.SYSUserRoles
                                 join r in db.LOOKUPRoles on
@@ -92,6 +94,90 @@ namespace MVC5RealWorld.Models.EntityManager
                 }
             }
             return false;
+        }
+
+        public List<LOOKUPAvailableRole> GetAllRoles()
+        {
+            using (DemoDBEntities db = new DemoDBEntities())
+            {
+                var roles = db.LOOKUPRoles.Select(o => new LOOKUPAvailableRole
+                {
+                    LOOKUPRoleID = o.LOOKUPRoleID,
+                    RoleName = o.RoleName,
+                    RoleDescription = o.RoleDescription
+                }).ToList();
+
+                return roles;
+            }
+        }
+
+        public int GetUserID(string loginName)
+        {
+            using (DemoDBEntities db = new DemoDBEntities())
+            {
+                var user = db.SYSUsers.Where(o => o.LoginName.Equals(loginName));
+                if (user.Any())
+                    return user.FirstOrDefault().SYSUserID;
+            }
+            return 0;
+        }
+
+        public List<UserProfileView> GetAllUserProfiles()
+        {
+            List<UserProfileView> profiles = new List<UserProfileView>();
+            using (DemoDBEntities db = new DemoDBEntities())
+            {
+                UserProfileView UPV; var users = db.SYSUsers.ToList();
+
+                foreach (SYSUser u in db.SYSUsers)
+                {
+                    UPV = new UserProfileView();
+                    UPV.SYSUserID = u.SYSUserID;
+                    UPV.LoginName = u.LoginName;
+                    UPV.Password = u.PasswordEncryptedText;
+
+                    var SUP = db.SYSUserProfiles.Find(u.SYSUserID);
+                    if (SUP != null) {
+                        UPV.FirstName = SUP.FirstName;
+                        UPV.LastName = SUP.LastName;
+                        UPV.Gender = SUP.Gender; }
+
+                    var SUR = db.SYSUserRoles.Where(o => o.SYSUserID.Equals(u.SYSUserID));
+                    if (SUR.Any()) {
+                        var userRole = SUR.FirstOrDefault();
+                        UPV.LOOKUPRoleID = userRole.LOOKUPRoleID;
+                        UPV.RoleName = userRole.LOOKUPRole.RoleName;
+                        UPV.IsRoleActive = userRole.IsActive;
+                    }
+
+                    profiles.Add(UPV);
+                }
+            }
+
+            return profiles;
+        }
+
+        public UserDataView GetUserDataView(string loginName)
+        {
+            UserDataView UDV = new UserDataView();
+            List<UserProfileView> profiles = GetAllUserProfiles();
+            List<LOOKUPAvailableRole> roles = GetAllRoles();
+
+            int? userAssignedRoleID = 0, userID = 0;
+            string userGender = string.Empty;
+
+            userID = GetUserID(loginName); using (DemoDBEntities db = new DemoDBEntities())
+            {
+                userAssignedRoleID = db.SYSUserRoles.Where(o => o.SYSUserID == userID)?.FirstOrDefault().LOOKUPRoleID;
+                userGender = db.SYSUserProfiles.Where(o => o.SYSUserID == userID)?.FirstOrDefault().Gender;
+            }
+
+            List<Gender> genders = new List<Gender>(); genders.Add(new Gender { Text = "Male", Value = "M" }); genders.Add(new Gender { Text = "Female", Value = "F" });
+
+            UDV.UserProfile = profiles;
+            UDV.UserRoles = new UserRoles { SelectedRoleID = userAssignedRoleID, UserRoleList = roles };
+            UDV.UserGender = new UserGender { SelectedGender = userGender, Gender = genders };
+            return UDV;
         }
 
     }
