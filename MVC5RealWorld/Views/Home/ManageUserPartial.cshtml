@@ -94,53 +94,53 @@
 <script type="text/javascript">
      $(function () {
 
-         var initDialog = function (type) {             
-             var title = type;             
-             $("#divEdit").dialog({                 
-                 autoOpen: false,                 
-                 modal: true,                 
-                 title: type + ' User',                 
-                 width: 360,                 
-                 buttons: {                     
-                     Save: function () {                         
-                         var id = $("#hidID").val();                         
-                         var role = $("#ddlRoles").val();                         
-                         var loginName = $("#txtLoginName").val();                         
-                         var loginPass = $("#txtPassword").val();                         
-                         var fName = $("#txtFirstName").val();                         
-                         var lName = $("#txtLastName").val();                         
+         var initDialog = function (type) {
+             var title = type;
+             $("#divEdit").dialog({
+                 autoOpen: false,
+                 modal: true,
+                 title: type + ' User',
+                 width: 360,
+                 buttons: {
+                     Save: function () {
+                         var id = $("#hidID").val();
+                         var role = $("#ddlRoles").val();
+                         var loginName = $("#txtLoginName").val();
+                         var loginPass = $("#txtPassword").val();
+                         var fName = $("#txtFirstName").val();
+                         var lName = $("#txtLastName").val();
                          var gender = $("#ddlGender").val();
 
-                         UpdateUser(id, loginName, loginPass, fName, lName, gender, role);                         
-                         $(this).dialog("destroy");                     
-                     },                     
-                     Cancel: function () { $(this).dialog("destroy"); }                 
-                 }             
+                         UpdateUser(id, loginName, loginPass, fName, lName, gender, role);
+                         $(this).dialog("destroy");
+                     },
+                     Cancel: function () { $(this).dialog("destroy"); }
+                 }
              });
          }
-         function UpdateUser(id, logName, logPass, fName, lName, gender, role) {             
-             $.ajax({                 
-                 type: "POST",                 
-                 url: "@(Url.Action("UpdateUserData","Home"))",                 
-                 data: { userID: id, loginName: logName, password: logPass, firstName: fName, lastName: lName, gender: gender, roleID: role },                 
-                 success: function (data) {                     
-                     $("#divUserListContainer").load("@(Url.Action("ManageUserPartial","Home", new { status ="update" }))");                 
-                 },                 
-                 error: function (error) {                     
-                     //to do:                 
-                 }             
-             });         
+         function UpdateUser(id, logName, logPass, fName, lName, gender, role) {
+             $.ajax({
+                 type: "POST",
+                 url: "@(Url.Action("UpdateUserData","Home"))",
+                 data: { userID: id, loginName: logName, password: logPass, firstName: fName, lastName: lName, gender: gender, roleID: role },
+                 success: function (data) {
+                     $("#divUserListContainer").load("@(Url.Action("ManageUserPartial","Home", new { status ="update" }))");
+                 },
+                 error: function (error) {
+                     //to do:
+                 }
+             });
          }
 
          $("a.lnkEdit").on("click", function () {
              console.log("entrou");
-             initDialog("Edit");             
-             $(".alert-success").empty();             
+             initDialog("Edit");
+             $(".alert-success").empty();
              var row = $(this).closest('tr');
 
-             $("#hidID").val(row.find("td:eq(0)").html().trim());             
-             $("#txtLoginName").val(row.find("td:eq(1)").html().trim());             
-             $("#txtPassword").val(row.find("td:eq(2)").html().trim());             
+             $("#hidID").val(row.find("td:eq(0)").html().trim());
+             $("#txtLoginName").val(row.find("td:eq(1)").html().trim());
+             $("#txtPassword").val(row.find("td:eq(2)").html().trim());
              $("#txtFirstName").val(row.find("td:eq(3)").html().trim());
              $("#txtLastName").val(row.find("td:eq(4)").html().trim());
              $("#ddlGender").val(row.find("td:eq(5)").html().trim());
@@ -157,7 +157,7 @@
                  url: "@(Url.Action("DeleteUser", "Home"))",
                  data: { userID: id },
                  success: function (data) {
-                     $("divUserListContainer").load("@Url.Action("ManageUserPartial", "Home", new { status = "delete" }))");
+                     $("divUserListContainer").load("@(Url.Action("ManageUserPartial", "Home", new { status ="delete" }))");
                  },
                  error: function(errr){}
              });
