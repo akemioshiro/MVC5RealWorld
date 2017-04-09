@@ -78,5 +78,12 @@ namespace MVC5RealWorld.Controllers
 
         }
 
+        //[Authorize(Roles = "Admin")]
+        public ActionResult DeleteUser(int userID)
+        {
+            UserManager UM = new UserManager();
+            UM.DeleteUser(userID);
+            return Json(new { success = true });
+        }
     }
 }
